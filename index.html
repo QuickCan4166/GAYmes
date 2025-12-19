@@ -23,11 +23,31 @@
         background-color: #1f1f2e;
         padding: 15px 30px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     nav h1 {
         font-size: 1.8em;
         color: #ffcc00;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 15px;
+    }
+
+    .tabs a {
+        text-decoration: none;
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 8px;
+        background-color: #33334d;
+        transition: background 0.2s;
+    }
+
+    .tabs a:hover {
+        background-color: #55556d;
     }
 
     nav input[type="text"] {
@@ -51,8 +71,7 @@
         gap: 20px;
         padding: 30px;
         width: 100%;
-        max-width: 1200px;
-        margin: 0 auto;
+        max-width: 100%;
     }
 
     .game-tile {
@@ -93,29 +112,16 @@
 
 <nav>
     <h1>GAYmes</h1>
+<div class="tabs">
+    <a href="Chat Room.html">Chat</a>
+    <a href="Youtube.html">Youtube</a>
+    <a href="https://flixer.sh" target="_blank">Movies</a>
+</div>
+
     <input type="text" placeholder="Search games..." id="searchBar">
 </nav>
 
 <div class="game-grid" id="gameGrid">
-<div class="game-tile">
-        <a href="https://discord.com/invite/FhQYB9Cyqn" target="_blank" rel="noopener noreferrer">
-            <img src="img/discord.png" alt="Discord Server">
-            <h2>Discord Server</h2>
-       </a>
-    </div>
-
-   <div class="game-tile">
-        <a href="Chat Room.html">
-            <img src="img/chat room.png" alt="Chat">
-            <h2>Chat</h2>
-        </a>
-    </div>
-   <div class="game-tile">
-        <a href="Youtube.html">
-            <img src="img/youtube.png" alt="Youtube">
-            <h2>Youtube</h2>
-        </a>
-    </div>
    <div class="game-tile">
         <a href="Games/EaglerCraft.html">
             <img src="Games/img/eaglercraft.png" alt="EaglerCraft">
@@ -272,18 +278,286 @@
             <h2>Sand Game</h2>
         </a>
     </div>
-    <!-- Add more tiles here -->
+    <div class="game-tile">
+        <a href="Games/.html">
+            <img src="Games/img/sand game.png" alt="Sand Game">
+            <h2>Sand Game</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Soundboard.html">
+            <img src="Games/img/soundboard.png" alt="Soundboard">
+            <h2>SoundBoard</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Undertale Yellow.html">
+            <img src="Games/img/undertale yellow.png" alt="Undertale Yellow">
+            <h2>Undertale Yellow</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/That's Not My Neighbor.html">
+            <img src="Games/img/thats not my neighbor.png" alt="That's Not My Neighbor">
+            <h2>That's Not My Neighbor</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Tag.html">
+            <img src="Games/img/tag.png" alt="Tag">
+            <h2>Tag</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Smash Karts.html">
+            <img src="Games/img/smash karts.png" alt="Smash Karts">
+            <h2>Smash Karts</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Ruffle.html">
+            <img src="Games/img/ruffle.png" alt="Ruffle">
+            <h2>Ruffle</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Run 3.html">
+            <img src="Games/img/run3.png" alt="Run 3">
+            <h2>Run 3</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Run 2.html">
+            <img src="Games/img/Run2.png" alt="Run 2">
+            <h2>Run 2</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Run 1.html">
+            <img src="Games/img/run1.png" alt="Run">
+            <h2>Run</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Rooftop Snipers.html">
+            <img src="Games/img/rooftop snipers.png" alt="Rooftop Snipers">
+            <h2>Rooftop Snipers</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Pou.html">
+            <img src="Games/img/pou.png" alt="Pou">
+            <h2>Pou</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Ragdoll Archers.html">
+            <img src="Games/img/ragdoll archers.png" alt="Ragdoll Archers">
+            <h2>Ragdoll Archers</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Plants vs Zombies.html">
+            <img src="Games/img/pvz.png" alt="Plants V Zombies">
+            <h2>Plants Vs Zombies</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Parappa The Rapper.html">
+            <img src="Games/img/parappa the rapper.png" alt="Parappa The Rapper">
+            <h2>Parappa The Rapper</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Class of '09.html">
+            <img src="Games/img/class of 09.png" alt="Class of '09">
+            <h2>Class of '09</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Oneshot (LEGACY).html">
+            <img src="Games/img/oneshot.png" alt="Oneshot">
+            <h2>Oneshot</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/OMORI.html">
+            <img src="Games/img/omori.png" alt="OMORI">
+            <h2>OMORI</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Happy Wheels.html">
+            <img src="Games/img/happy wheels.png" alt="Happy Wheels (im going insane)">
+            <h2>Happy Wheels</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Granny.html">
+            <img src="Games/img/granny.png" alt="Granny (im hungry)">
+            <h2>Granny</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Gladihoppers.html">
+            <img src="Games/img/gladihoppers.png" alt="Gladihoppers (im tired)">
+            <h2>Gladihoppers</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Fruit Ninja.html">
+            <img src="Games/img/fruit ninja.png" alt="Fruit Ninja (i havent sleep right for months)">
+            <h2>Fruit Ninja</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Five Nights at Freddy's_ World.html">
+            <img src="Games/img/fnaf world.png" alt="Fnaf World (ive been typing for hours)">
+            <h2>Fnaf World</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Five Nights at Freddy's_ Ultimate Custom Night.html">
+            <img src="Games/img/fnaf ucn.png" alt="Fnaf UCN (reapeating the same thing over and over)">
+            <h2>Fnaf UCN</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Five Nights at Freddy's 3.html">
+            <img src="Games/img/fnaf3.png" alt="Fnaf 3 (THIS WEBSITE IS DRIVING ME INSANE)">
+            <h2>Fnaf 3</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Five Nights at Freddy's 2.html">
+            <img src="Games/img/fnaf2.png" alt="Fnaf 2">
+            <h2>Fnaf 2</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Endoparasitic.html">
+            <img src="Games/img/endoparasitic.png" alt="Endoparasitic">
+            <h2>Endoparasitic</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Baxing Random.html">
+            <img src="Games/img/boxing random.png" alt="Boxing Random">
+            <h2>Boxing Random</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Block Blast.html">
+            <img src="Games/img/block blast.png" alt="Block Blast">
+            <h2>Block Blast</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/BitPlanes.html">
+            <img src="Games/img/bit planes.png" alt="BitPlanes">
+            <h2>BitPlanes</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Bad Time Simulator.html">
+            <img src="Games/img/bad time simulator.png" alt="Bad Time Simulator">
+            <h2>Bad Time Simulator</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/BuildNow.gg.html">
+            <img src="Games/img/buildnow.png" alt="BuildNow.gg">
+            <h2>BuildNow.gg</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/R.E.P.O.html">
+            <img src="Games/img/repo.png" alt="R.E.P.O">
+            <h2>R.E.P.O</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Hollow Knight.html">
+            <img src="Games/img/hollow knight.png" alt="Hollow Knight">
+            <h2>Hollow Knight</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/stack.html">
+            <img src="Games/img/stack.png" alt="Stack">
+            <h2>Stack</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/tetris.html">
+            <img src="Games/img/tetris.png" alt="Tetris">
+            <h2>Tetris</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/2048.html">
+            <img src="Games/img/2048.png" alt="2048">
+            <h2>2048</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/celeste.html">
+            <img src="Games/img/celeste.png" alt="Celeste">
+            <h2>Celeste</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Baldi's Basics Classic Remastered.html">
+            <img src="Games/img/baldi's basics.png" alt="Baldi's Basics">
+            <h2>Baldi's Basics Remastered</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Angry Birds.html">
+            <img src="Games/img/angry birds.png" alt="Angry Birds">
+            <h2>Angry Birds</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/Escape Road.html">
+            <img src="Games/img/escape road.png" alt="Escape Road">
+            <h2>Escape Road</h2>
+        </a>
+    </div>
+    <div class="game-tile">
+        <a href="Games/drivemad/drivemad.html">
+            <img src="Games/img/drive mad.png" alt="Drive Mad">
+            <h2>Drive Mad</h2>
+        </a>
+    </div>
+<div class="game-tile">
+        <a href="https://discord.gg/nMgzJkPN8x/">
+            <img src="img/discord.png" alt="Discord Server">
+            <h2>Discord Server</h2>
+        </a>
+    </div>   
 </div>
 
 <footer>
-    Games
+    Games - Abner was here lol
 </footer>
 
 <script>
-    // Simple search functionality
-    const searchBar = document.getElementById('searchBar');
-    const tiles = document.querySelectorAll('.game-tile');
+    const gameGrid = document.getElementById('gameGrid');
+    const tiles = Array.from(gameGrid.children);
 
+    // Sort tiles alphabetically by title
+    tiles.sort((a, b) => {
+        const titleA = a.querySelector('h2').textContent.toLowerCase();
+        const titleB = b.querySelector('h2').textContent.toLowerCase();
+        return titleA.localeCompare(titleB);
+    });
+
+    // Re-append in sorted order
+    tiles.forEach(tile => gameGrid.appendChild(tile));
+
+    // Search functionality
+    const searchBar = document.getElementById('searchBar');
     searchBar.addEventListener('input', () => {
         const query = searchBar.value.toLowerCase();
         tiles.forEach(tile => {
