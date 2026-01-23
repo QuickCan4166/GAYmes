@@ -44,13 +44,12 @@
 <div id="results"></div>
 
 <script>
-const API_KEY = 'AIzaSyCd1cgR3Yksyq8xln_w694DCZ7tJ3jnHAg'; // Replace with your YouTube API key
+const API_KEY = 'YOUR_API_KEY_HERE';
 
 async function searchYouTube() {
   const query = document.getElementById('ytQuery').value.trim();
   if (!query) return alert('Enter a search term!');
 
-  // Fetch 15 videos from YouTube API
   const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=15&q=${encodeURIComponent(query)}&key=${API_KEY}`);
   const data = await response.json();
 
@@ -64,7 +63,6 @@ async function searchYouTube() {
     const title = item.snippet.title;
     const thumbnail = item.snippet.thumbnails.medium.url;
 
-    // Create tile for each video
     const tile = document.createElement('div');
     tile.className = 'video-tile';
     tile.innerHTML = `
@@ -72,15 +70,15 @@ async function searchYouTube() {
       <h3>${title}</h3>
     `;
 
-    // Embed video when clicked
     tile.addEventListener('click', () => {
       videoContainer.innerHTML = `
-        <iframe width="800" height="450" 
-          src="https://www.youtube.com/embed/${videoId}" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        <iframe width="1000" height="560"
+          src="https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=1&playsinline=0"
+          frameborder="0"
+          allow="autoplay; fullscreen; encrypted-media"
           allowfullscreen>
-        </iframe>`;
-      // Scroll to the video
+        </iframe>
+      `;
       videoContainer.scrollIntoView({ behavior: 'smooth' });
     });
 
