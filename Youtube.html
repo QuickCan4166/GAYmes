@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>YouTube Search</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px; }
+  #searchBar { display: flex; justify-content: center; margin-bottom: 20px; }
+  #searchBar input { padding: 10px; width: 300px; border-radius: 5px 0 0 5px; border: none; font-size: 16px; }
+  #searchBar button { padding: 10px; border: none; border-radius: 0 5px 5px 0; background: #ff0000; color: #fff; cursor: pointer; }
+  #results { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+  .video { cursor: pointer; }
+  .video img { width: 100%; border-radius: 5px; }
+  .video-title { font-size: 14px; margin-top: 5px; }
+  #player { margin-top: 30px; display: flex; justify-content: center; }
+  iframe { width: 80%; height: 450px; border: none; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<div id="searchBar">
+  <input type="text" id="query" placeholder="Search YouTube...">
+  <button onclick="searchVideos()">Search</button>
+</div>
+
+<div id="results"></div>
+
+<div id="player"></div>
+
+<script>
+const API_KEY = 'AIzaSyCwUriu_2XyV7wI7QpHEMkQYBk7xXg4krk';
+
+async function searchVideos() {
+  const query = document.getElementById('query').value;
+  const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(query)}&key=${API_KEY}`);
+  const data = await res.json();
+  displayResults(data.items);
+}
+
+function displayResults(videos) {
+  const results = document.getElementById('results');
+  results.innerHTML = '';
+
+  videos.forEach(video => {
+    const div = document.createElement('div');
+    div.classList.add('video');
+    div.innerHTML = `
+      <img src="${video.snippet.thumbnails.medium.url}" alt="${video.snippet.title}">
+      <div class="video-title">${video.snippet.title}</div>
+    `;
+    div.onclick = () => playVideo(video.id.videoId);
+    results.appendChild(div);
+  });
+}
+
+function playVideo(videoId) {
+  const player = document.getElementById('player');
+  player.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}" allowfullscreen></iframe>`;
+}
+</script>
+
+</body>
+</html>
