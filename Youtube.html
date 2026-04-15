@@ -1,63 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>YouTube Search</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>YouTube</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px; }
-  #searchBar { display: flex; justify-content: center; margin-bottom: 20px; }
-  #searchBar input { padding: 10px; width: 300px; border-radius: 5px 0 0 5px; border: none; font-size: 16px; }
-  #searchBar button { padding: 10px; border: none; border-radius: 0 5px 5px 0; background: #ff0000; color: #fff; cursor: pointer; }
-  #results { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-  .video { cursor: pointer; }
-  .video img { width: 100%; border-radius: 5px; }
-  .video-title { font-size: 14px; margin-top: 5px; }
-  #player { margin-top: 30px; display: flex; justify-content: center; }
-  iframe { width: 80%; height: 450px; border: none; border-radius: 10px; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222;
+    --border: rgba(255,255,255,0.1);
+    --text: #f1f1f1;
+    --muted: #aaa;
+    --red: #ff0000;
+    --radius: 10px;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
+
+  /* NAV */
+  nav { display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 700; color: var(--text); text-decoration: none; flex-shrink: 0; }
+  .logo svg { width: 32px; height: 22px; }
+  .search-wrap { display: flex; flex: 1; max-width: 600px; margin: 0 auto; }
+  #search-input {
+    flex: 1; height: 38px; padding: 0 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-right: none; border-radius: 20px 0 0 20px;
+    color: var(--text); font-size: 14px; outline: none;
+  }
+  #search-input:focus { border-color: #3ea6ff; }
+  #search-btn {
+    height: 38px; padding: 0 18px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 0 20px 20px 0; color: var(--text);
+    cursor: pointer; font-size: 14px;
+  }
+  #search-btn:hover { background: #333; }
+
+  /* TRENDING CHIPS */
+  #chips { display: flex; gap: 8px; padding: 10px 20px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border); }
+  #chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
+    background: var(--surface2); border: none; color: var(--text);
+    font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+  .chip:hover { background: #333; }
+  .chip.active { background: var(--text); color: var(--bg); }
+
+  /* MAIN */
+  #main { padding: 20px; }
+
+  /* PLAYER */
+  #player-wrap { display: none; margin-bottom: 24px; border-radius: var(--radius); overflow: hidden; background: #000; border: 1px solid var(--border); }
+  #player-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surface); }
+  #player-title { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 80px); }
+  #close-btn { background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 12px; padding: 4px 12px; cursor: pointer; }
+  #close-btn:hover { color: var(--text); border-color: var(--text); }
+  #player-frame { width: 100%; aspect-ratio: 16/9; display: block; border: none; }
+
+  /* GRID */
+  #video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .video-card { cursor: pointer; border-radius: var(--radius); overflow: hidden; background: var(--surface); border: 1px solid transparent; transition: border-color 0.15s, transform 0.15s; }
+  .video-card:hover { border-color: var(--border); transform: translateY(-2px); }
+  .thumb-wrap { position: relative; aspect-ratio: 16/9; overflow: hidden; background: #000; }
+  .thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.2s; }
+  .video-card:hover .thumb-wrap img { opacity: 0.85; }
+  .play-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; }
+  .video-card:hover .play-overlay { opacity: 1; }
+  .play-circle { width: 50px; height: 50px; border-radius: 50%; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; }
+  .play-triangle { width: 0; height: 0; border-style: solid; border-width: 9px 0 9px 18px; border-color: transparent transparent transparent #fff; margin-left: 4px; }
+  .video-info { padding: 10px 12px 14px; }
+  .video-title { font-size: 13px; font-weight: 500; line-height: 1.45; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .video-channel { font-size: 12px; color: var(--muted); }
+
+  /* STATUS */
+  #status { text-align: center; padding: 3rem 0; color: var(--muted); font-size: 14px; }
+
+  /* PAGE NAV */
+  #page-nav { display: flex; gap: 10px; justify-content: center; margin-top: 28px; }
+  #page-nav button { padding: 8px 22px; border-radius: 20px; background: var(--surface2); border: 1px solid var(--border); color: var(--text); cursor: pointer; font-size: 13px; }
+  #page-nav button:hover { background: #333; }
+
+  @media (max-width: 500px) {
+    nav { padding: 10px 12px; }
+    #main { padding: 12px; }
+    #video-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .video-title { font-size: 12px; }
+  }
 </style>
 </head>
 <body>
 
-<div id="searchBar">
-  <input type="text" id="query" placeholder="Search YouTube...">
-  <button onclick="searchVideos()">Search</button>
+<nav>
+  <a class="logo" href="#">
+    <svg viewBox="0 0 90 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="28" height="20" rx="5" fill="#FF0000"/>
+      <polygon points="11,6 11,14 20,10" fill="white"/>
+      <text x="33" y="15" font-family="Arial" font-weight="bold" font-size="14" fill="#f1f1f1">YouTube</text>
+    </svg>
+  </a>
+  <div class="search-wrap">
+    <input id="search-input" type="text" placeholder="Search" />
+    <button id="search-btn" onclick="doSearch()">&#128269;</button>
+  </div>
+</nav>
+
+<div id="chips">
+  <button class="chip active" onclick="chipSearch(this,'trending music')">Music</button>
+  <button class="chip" onclick="chipSearch(this,'gaming highlights')">Gaming</button>
+  <button class="chip" onclick="chipSearch(this,'funny moments 2024')">Funny</button>
+  <button class="chip" onclick="chipSearch(this,'minecraft')">Minecraft</button>
+  <button class="chip" onclick="chipSearch(this,'lofi hip hop')">Lo-fi</button>
+  <button class="chip" onclick="chipSearch(this,'anime moments')">Anime</button>
+  <button class="chip" onclick="chipSearch(this,'nba highlights')">NBA</button>
+  <button class="chip" onclick="chipSearch(this,'cooking recipes')">Cooking</button>
+  <button class="chip" onclick="chipSearch(this,'science explained')">Science</button>
+  <button class="chip" onclick="chipSearch(this,'movie trailers 2025')">Movies</button>
 </div>
 
-<div id="results"></div>
-
-<div id="player"></div>
+<div id="main">
+  <div id="player-wrap">
+    <div id="player-header">
+      <span id="player-title"></span>
+      <button id="close-btn" onclick="closePlayer()">✕ close</button>
+    </div>
+    <iframe id="player-frame" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+  </div>
+  <div id="status">Loading...</div>
+  <div id="video-grid"></div>
+  <div id="page-nav"></div>
+</div>
 
 <script>
-const API_KEY = 'AIzaSyCwUriu_2XyV7wI7QpHEMkQYBk7xXg4krk';
+const API_KEY = 'AIzaSyBrkIdhaoHylEOFoCxZyJY3CEZcYTP1oKg';
+let prevTokens = [];
+let lastQuery = 'trending music';
 
-async function searchVideos() {
-  const query = document.getElementById('query').value;
-  const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(query)}&key=${API_KEY}`);
-  const data = await res.json();
-  displayResults(data.items);
+window.onload = () => doSearch(undefined, 'trending music');
+
+document.getElementById('search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+function chipSearch(el, query) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('search-input').value = query;
+  doSearch(undefined, query);
 }
 
-function displayResults(videos) {
-  const results = document.getElementById('results');
-  results.innerHTML = '';
+async function doSearch(pageToken, overrideQuery) {
+  const query = overrideQuery || document.getElementById('search-input').value.trim() || 'trending';
+  if (!pageToken) { prevTokens = []; lastQuery = query; }
+  else lastQuery = query;
 
-  videos.forEach(video => {
-    const div = document.createElement('div');
-    div.classList.add('video');
-    div.innerHTML = `
-      <img src="${video.snippet.thumbnails.medium.url}" alt="${video.snippet.title}">
-      <div class="video-title">${video.snippet.title}</div>
-    `;
-    div.onclick = () => playVideo(video.id.videoId);
-    results.appendChild(div);
+  setStatus('Loading...');
+  document.getElementById('video-grid').innerHTML = '';
+  document.getElementById('page-nav').innerHTML = '';
+
+  let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&q=${encodeURIComponent(query)}&key=${API_KEY}`;
+  if (pageToken) url += `&pageToken=${pageToken}`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) { setStatus('Error: ' + data.error.message); return; }
+    const items = data.items || [];
+    if (!items.length) { setStatus('No results found.'); return; }
+    setStatus('');
+    renderVideos(items);
+    renderPageNav(data.nextPageToken, pageToken);
+  } catch(e) {
+    setStatus('Network error. Check your connection.');
+  }
+}
+
+function renderVideos(items) {
+  const grid = document.getElementById('video-grid');
+  items.forEach(item => {
+    const id = item.id.videoId;
+    const title = item.snippet.title;
+    const channel = item.snippet.channelTitle;
+    const thumb = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '';
+    const card = document.createElement('div');
+    card.className = 'video-card';
+    card.innerHTML = `
+      <div class="thumb-wrap">
+        <img src="${thumb}" alt="" loading="lazy" />
+        <div class="play-overlay"><div class="play-circle"><div class="play-triangle"></div></div></div>
+      </div>
+      <div class="video-info">
+        <div class="video-title">${esc(title)}</div>
+        <div class="video-channel">${esc(channel)}</div>
+      </div>`;
+    card.onclick = () => openPlayer(id, title);
+    grid.appendChild(card);
   });
 }
 
-function playVideo(videoId) {
-  const player = document.getElementById('player');
-  player.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}" allowfullscreen></iframe>`;
+function renderPageNav(nextTok, currentTok) {
+  const nav = document.getElementById('page-nav');
+  if (currentTok) {
+    const prev = document.createElement('button');
+    prev.textContent = '← Previous';
+    prev.onclick = () => { const t = prevTokens.pop(); doSearch(t || undefined, lastQuery); };
+    nav.appendChild(prev);
+  }
+  if (nextTok) {
+    const next = document.createElement('button');
+    next.textContent = 'Next →';
+    next.onclick = () => { if (currentTok) prevTokens.push(currentTok); doSearch(nextTok, lastQuery); };
+    nav.appendChild(next);
+  }
+}
+
+function openPlayer(videoId, title) {
+  const wrap = document.getElementById('player-wrap');
+  document.getElementById('player-frame').src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+  document.getElementById('player-title').textContent = title;
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closePlayer() {
+  document.getElementById('player-frame').src = '';
+  document.getElementById('player-wrap').style.display = 'none';
+}
+
+function setStatus(msg) {
+  const s = document.getElementById('status');
+  s.textContent = msg;
+  s.style.display = msg ? 'block' : 'none';
+}
+
+function esc(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
-
 </body>
 </html>
