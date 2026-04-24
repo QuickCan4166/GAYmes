@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Story Viewer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+
+  :root {
+    --bg: #0a0a0a;
+    --text: #e8e0d0;
+    --dim: #5a5248;
+    --accent: #c8a87a;
+    --crack: rgba(255,255,255,0.85);
+    --crack-shadow: rgba(0,0,0,0.9);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Courier Prime', 'Courier New', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: default;
+    user-select: none;
+  }
+
+  /* CRT scanlines */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 2px,
+      rgba(0, 0, 0, 0.18) 2px,
+      rgba(0, 0, 0, 0.18) 4px
+    );
+    pointer-events: none;
+    z-index: 200;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.4;
+  }
+
+  /* Rolling scan bar */
+  #crt-bar {
+    position: fixed;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(255,255,255,0.022) 50%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 190;
+    animation: scanroll 8s linear infinite;
+  }
+
+  @keyframes scanroll {
+    0%   { top: -60px; }
+    100% { top: 100vh; }
+  }
+
+  /* Subtle flicker */
+  @keyframes flicker {
+    0%,  19%,  21%,  23%,  25%, 54%,  56%, 100% { opacity: 1; }
+    20%,  24%,  55% { opacity: 0.93; }
+  }
+
+  #stage {
+    animation: flicker 9s infinite;
+  }
+
+  #stage {
+    width: min(680px, 92vw);
+    position: relative;
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem 0;
+    animation: flicker 9s infinite;
+  }
+
+  .line-wrap {
+    overflow: hidden;
+    margin-bottom: 0.2em;
+  }
+
+  .line {
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    line-height: 1.85;
+    letter-spacing: 0.03em;
+    color: var(--text);
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.55s ease, transform 0.55s ease, color 0.4s ease;
+    text-shadow: 0 0 6px rgba(232, 224, 208, 0.25);
+  }
+
+  .line.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .line.old {
+    color: var(--dim);
+  }
+
+  .line.old.current {
+    color: var(--text);
+  }
+
+  /* Prompt */
+  #prompt {
+    position: fixed;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dim);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    transition: opacity 0.5s ease;
+  }
+
+  #prompt.hidden { opacity: 0; pointer-events: none; }
+
+  .key-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--dim);
+    border-radius: 3px;
+    padding: 1px 7px;
+    font-size: 0.7rem;
+    color: var(--dim);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  #end-msg {
+    position: fixed;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dim);
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+
+  #end-msg.visible { opacity: 1; }
+
+  /* ── SHATTER CANVAS ── */
+  #shatter-canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+
+  #shatter-canvas.active { opacity: 1; }
+
+  /* Vignette after shatter */
+  #vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 49;
+    opacity: 0;
+    background: radial-gradient(ellipse at center,
+      transparent 40%,
+      rgba(0,0,0,0.6) 100%);
+    transition: opacity 1s ease;
+  }
+
+  #vignette.active { opacity: 1; }
+
+  /* Screen-shake keyframe */
+  @keyframes shake {
+    0%   { transform: translate(0,0) rotate(0deg); }
+    10%  { transform: translate(-6px, -3px) rotate(-0.5deg); }
+    20%  { transform: translate(7px,  4px) rotate(0.4deg); }
+    30%  { transform: translate(-5px,  6px) rotate(-0.3deg); }
+    40%  { transform: translate(6px,  -5px) rotate(0.6deg); }
+    50%  { transform: translate(-4px,  3px) rotate(-0.2deg); }
+    60%  { transform: translate(5px,   2px) rotate(0.3deg); }
+    70%  { transform: translate(-3px, -4px) rotate(-0.4deg); }
+    80%  { transform: translate(4px,   5px) rotate(0.2deg); }
+    90%  { transform: translate(-2px,  2px) rotate(-0.1deg); }
+    100% { transform: translate(0,0) rotate(0deg); }
+  }
+
+  body.shake { animation: shake 0.55s ease forwards; }
+
+  /* Line number badge */
+  #line-counter {
+    position: fixed;
+    top: 1.8rem;
+    right: 2rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--dim);
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+
+<div id="crt-bar"></div>
+<canvas id="shatter-canvas"></canvas>
+<div id="vignette"></div>
+
+<div id="stage"></div>
+
+<div id="prompt">
+  <span class="key-icon">↵</span>
+  <span>press enter</span>
+</div>
+
+<div id="end-msg">— end —</div>
+
+<div id="line-counter"></div>
+
+<script>
+/* ════════════════════════════════════════════════
+   ▼▼▼  EDIT YOUR LINES HERE  ▼▼▼
+   Add or remove lines as needed.
+   The shatter effect triggers after line index SHATTER_AFTER (0-based).
+   So SHATTER_AFTER = 3 means after the 4th line is shown.
+════════════════════════════════════════════════ */
+
+const LINES = [
+  "The cuts on my arms weren't from my cat.",
+  "I dont even have a cat.",
+  "You explored far to get here, huh?",
+  "I inflicted the cuts.",
+  "at night after school i hoften find myself thinking.",
+  "what the hell is keeping me here?.",
+  "i've already tried ending it countless times.",
+  "until i met someone who kept me going in my last school...",
+  "until my mom removed me from it.",
+  "not sure how long i can keep going - Whole heartedly, Abner.",
+];
+
+const SHATTER_AFTER = 3; // 0-based index: shatter fires after this line is revealed
+
+/* ════════════════════════════════════════════════
+   ▲▲▲  STOP EDITING HERE  ▲▲▲
+════════════════════════════════════════════════ */
+
+let currentIndex = -1;
+let shattered = false;
+let finished = false;
+
+const stage       = document.getElementById('stage');
+const prompt      = document.getElementById('prompt');
+const endMsg      = document.getElementById('end-msg');
+const counter     = document.getElementById('line-counter');
+const canvas      = document.getElementById('shatter-canvas');
+const vignette    = document.getElementById('vignette');
+const ctx         = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+/* ── Crack drawing ── */
+function drawCracks() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Impact point slightly off-center
+  const ox = W * 0.52 + (Math.random() - 0.5) * W * 0.08;
+  const oy = H * 0.48 + (Math.random() - 0.5) * H * 0.08;
+
+  const NUM_MAIN   = 11 + Math.floor(Math.random() * 5);
+  const NUM_BRANCH = 3;
+
+  function crack(x, y, angle, len, depth, alpha) {
+    if (len < 8 || depth < 0) return;
+    const segments = 4 + Math.floor(Math.random() * 4);
+    let cx = x, cy = y;
+    for (let i = 0; i < segments; i++) {
+      const segLen = len / segments * (0.7 + Math.random() * 0.6);
+      const wobble = (Math.random() - 0.5) * 0.35;
+      const nx = cx + Math.cos(angle + wobble) * segLen;
+      const ny = cy + Math.sin(angle + wobble) * segLen;
+
+      // shadow
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(nx, ny);
+      ctx.strokeStyle = `rgba(0,0,0,${alpha * 0.7})`;
+      ctx.lineWidth = depth * 1.8 + 2;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // crack itself
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(nx, ny);
+      ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+      ctx.lineWidth = Math.max(0.4, depth * 0.9);
+      ctx.stroke();
+
+      // micro-glint
+      if (Math.random() > 0.6) {
+        ctx.beginPath();
+        ctx.moveTo(cx + 0.5, cy + 0.5);
+        ctx.lineTo(nx + 0.5, ny + 0.5);
+        ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.4})`;
+        ctx.lineWidth = 0.4;
+        ctx.stroke();
+      }
+
+      if (depth > 0 && Math.random() > 0.55) {
+        const branchAngle = angle + (Math.random() - 0.5) * Math.PI * 0.9;
+        crack(nx, ny, branchAngle, segLen * 0.55, depth - 1, alpha * 0.65);
+      }
+
+      cx = nx; cy = ny;
+      angle += (Math.random() - 0.5) * 0.2;
+    }
+  }
+
+  // Radial spider-web from impact
+  for (let i = 0; i < NUM_MAIN; i++) {
+    const angle = (i / NUM_MAIN) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+    const len   = (Math.min(W, H) * 0.28) + Math.random() * Math.min(W, H) * 0.35;
+    const depth = 3 + Math.floor(Math.random() * 3);
+    const alpha = 0.6 + Math.random() * 0.35;
+    crack(ox, oy, angle, len, depth, alpha);
+  }
+
+  // Concentric ring fragments
+  [0.06, 0.14, 0.26, 0.42].forEach(r => {
+    const radius = Math.min(W, H) * r;
+    const pts = 6 + Math.floor(Math.random() * 5);
+    ctx.beginPath();
+    for (let i = 0; i < pts; i++) {
+      const a = (i / pts) * Math.PI * 2;
+      const rx = ox + Math.cos(a) * radius * (0.85 + Math.random() * 0.3);
+      const ry = oy + Math.sin(a) * radius * (0.85 + Math.random() * 0.3);
+      i === 0 ? ctx.moveTo(rx, ry) : ctx.lineTo(rx, ry);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = `rgba(255,255,255,${0.08 + Math.random() * 0.12})`;
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
+  });
+
+  // Small shard glints
+  for (let i = 0; i < 40; i++) {
+    const dist  = Math.random() * Math.min(W, H) * 0.45;
+    const a     = Math.random() * Math.PI * 2;
+    const sx    = ox + Math.cos(a) * dist;
+    const sy    = oy + Math.sin(a) * dist;
+    const size  = 1 + Math.random() * 3;
+    ctx.fillStyle = `rgba(255,255,255,${0.05 + Math.random() * 0.18})`;
+    ctx.beginPath();
+    ctx.arc(sx, sy, size * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function triggerShatter() {
+  shattered = true;
+  canvas.classList.add('active');
+  vignette.classList.add('active');
+  document.body.classList.add('shake');
+  drawCracks();
+
+  document.body.addEventListener('animationend', () => {
+    document.body.classList.remove('shake');
+  }, { once: true });
+}
+
+/* ── Line display ── */
+function showNextLine() {
+  if (finished) return;
+
+  currentIndex++;
+
+  if (currentIndex >= LINES.length) {
+    finished = true;
+    prompt.classList.add('hidden');
+    endMsg.classList.add('visible');
+    counter.textContent = '';
+    return;
+  }
+
+  // Dim all previous lines
+  stage.querySelectorAll('.line').forEach(el => {
+    el.classList.remove('current');
+    el.classList.add('old');
+  });
+
+  // Create new line
+  const wrap = document.createElement('div');
+  wrap.className = 'line-wrap';
+  const line = document.createElement('div');
+  line.className = 'line current';
+  line.textContent = LINES[currentIndex];
+  wrap.appendChild(line);
+  stage.appendChild(wrap);
+
+  // Trigger reflow then animate in
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      line.classList.add('visible');
+    });
+  });
+
+  // Scroll so it's always visible
+  setTimeout(() => {
+    line.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+
+  // Counter
+  counter.textContent = `${currentIndex + 1} / ${LINES.length}`;
+
+  // Hide prompt if last line
+  if (currentIndex === LINES.length - 1) {
+    prompt.classList.add('hidden');
+    setTimeout(() => {
+      endMsg.classList.add('visible');
+      counter.textContent = '';
+    }, 700);
+    finished = true;
+  }
+
+  // Shatter trigger
+  if (!shattered && currentIndex === SHATTER_AFTER) {
+    setTimeout(triggerShatter, 350);
+  }
+}
+
+/* ── Input handling ── */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    showNextLine();
+  }
+});
+
+document.addEventListener('click', () => {
+  showNextLine();
+});
+
+// Kick off with first line
+showNextLine();
+</script>
+</body>
+</html>
