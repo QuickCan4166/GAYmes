@@ -684,9 +684,10 @@ body.sidebar-collapsed #main { margin-left: 0; }
             <div class="method-switcher">
               <span class="method-label">Player:</span>
               <button class="method-btn active" onclick="switchMethod('nocookie')" id="m-nocookie">youtube-nocookie</button>
-              <button class="method-btn" onclick="switchMethod('invidious')" id="m-invidious">Invidious</button>
-              <button class="method-btn" onclick="switchMethod('piped')" id="m-piped">Piped</button>
-              <button class="method-btn" onclick="switchMethod('yewtu')" id="m-yewtu">yewtu.be</button>
+              <button class="method-btn" onclick="switchMethod('nadeko')" id="m-nadeko">nadeko ⭐</button>
+              <button class="method-btn" onclick="switchMethod('nerdvpn')" id="m-nerdvpn">nerdvpn</button>
+              <button class="method-btn" onclick="switchMethod('chocolatemoo')" id="m-chocolatemoo">chocolatemoo</button>
+              <button class="method-btn" onclick="switchMethod('newtab')" id="m-newtab" style="border:1px solid rgba(255,200,0,0.3);color:#ffc800;">↗ new tab</button>
             </div>
             <span class="method-status" id="method-status"></span>
             <button class="close-btn" onclick="closePlayer()">
@@ -695,7 +696,7 @@ body.sidebar-collapsed #main { margin-left: 0; }
             </button>
           </div>
           <div style="margin-top:10px; font-size:12px; color:var(--muted); line-height:1.6;">
-            💡 <strong style="color:var(--text)">Blocked?</strong> Try switching the player above — each uses a different embed method. <strong style="color:#ffc800">Invidious</strong>, <strong style="color:#ffc800">Piped</strong>, and <strong style="color:#ffc800">yewtu.be</strong> are school-filter friendly alternatives.
+            💡 <strong style="color:var(--text)">Blocked?</strong> Try <strong style="color:#ffc800">nadeko ⭐</strong> first — it uses rotating backends and is the most reliable alt right now. If everything's blocked, hit <strong style="color:#ffc800">↗ new tab</strong> to open directly on YouTube.
           </div>
         </div>
       </div>
@@ -723,22 +724,29 @@ let currentMethod = 'nocookie';
 let allItems = [];
 
 // Embed methods — ordered most to least likely to work
+// Updated April 2026 — Google has killed most public Invidious instances.
+// These are the confirmed-alive ones. nadeko uses rotating backends so it's the most resilient.
 const METHODS = {
+  nadeko: {
+    label: 'nadeko ⭐',
+    url: id => `https://inv.nadeko.net/embed/${id}?autoplay=1`,
+  },
+  nerdvpn: {
+    label: 'nerdvpn',
+    url: id => `https://invidious.nerdvpn.de/embed/${id}?autoplay=1`,
+  },
+  chocolatemoo: {
+    label: 'chocolatemoo',
+    url: id => `https://yt.chocolatemoo53.com/embed/${id}?autoplay=1`,
+  },
   nocookie: {
-    label: 'youtube-nocookie',
+    label: 'nocookie (last resort)',
     url: id => `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`,
   },
-  invidious: {
-    label: 'Invidious',
-    url: id => `https://invidious.io/embed/${id}?autoplay=1`,
-  },
-  piped: {
-    label: 'Piped',
-    url: id => `https://piped.video/embed/${id}?autoplay=1`,
-  },
-  yewtu: {
-    label: 'yewtu.be',
-    url: id => `https://yewtu.be/embed/${id}?autoplay=1`,
+  newtab: {
+    label: '↗ open in new tab',
+    url: id => null,
+    videoId: null,
   },
 };
 
@@ -850,7 +858,10 @@ function openPlayer(videoId, title, items) {
   currentMethod = 'nocookie';
 
   // Activate first method btn
-  Object.keys(METHODS).forEach(k => document.getElementById('m-' + k).classList.remove('active'));
+  Object.keys(METHODS).forEach(k => {
+    const el = document.getElementById('m-' + k);
+    if (el) el.classList.remove('active');
+  });
   document.getElementById('m-nocookie').classList.add('active');
 
   document.getElementById('player-frame').src = METHODS[currentMethod].url(videoId);
@@ -875,8 +886,15 @@ function openPlayer(videoId, title, items) {
 }
 
 function switchMethod(key) {
+  if (key === 'newtab') {
+    window.open(`https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
+    return;
+  }
   currentMethod = key;
-  Object.keys(METHODS).forEach(k => document.getElementById('m-' + k).classList.remove('active'));
+  Object.keys(METHODS).forEach(k => {
+    const el = document.getElementById('m-' + k);
+    if (el) el.classList.remove('active');
+  });
   document.getElementById('m-' + key).classList.add('active');
 
   const status = document.getElementById('method-status');
